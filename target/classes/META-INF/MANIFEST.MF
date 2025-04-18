@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Built-By: Rakensi
 Build-Jdk: 21.0.6
-Class-Path: basex-11.5.jar SMAX-1.0.9.jar
+Class-Path: basex-11.8.jar
 Main-Class: org.greenmercury.basex.xquery.functions.TestModule
 Created-By: Maven Integration for Eclipse
 
