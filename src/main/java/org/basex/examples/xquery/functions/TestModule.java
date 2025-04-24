@@ -5,11 +5,13 @@ import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.basex.query.QueryException;
 import org.basex.query.QueryModule;
 import org.basex.query.func.java.JavaCall;
 import org.basex.query.value.Value;
+import org.basex.query.value.node.ANode;
 import org.basex.query.value.node.FElem;
 import org.basex.query.value.type.SeqType;
 import org.w3c.dom.Attr;
@@ -21,6 +23,59 @@ import org.w3c.dom.NodeList;
 
 public class TestModule extends QueryModule
 {
+
+  // == Simple element constructor that returns a BaseX ANode.
+
+
+  @Requires(Permission.NONE)
+  @Deterministic
+  @ContextDependent
+  public Value element() throws QueryException, ParserConfigurationException
+  {
+    // Make a DOM document.
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setNamespaceAware(true);
+    DocumentBuilder builder = factory.newDocumentBuilder();
+    Document domDocument = builder.newDocument();
+    // Construct an element <test xmlns:test="http://test" test:attr="test"/>.
+    Element outputElement = domDocument.createElement("test");
+    outputElement.setAttributeNS("http://test", "test:attr", "test");
+    // The namespace declaration must be set as a (pseudo-)attribute.
+    outputElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:test", "http://test");
+    // Returning `outputElement`, or converting it to BaseX first, loses the attribute namespace URI.
+    //return JavaCall.toValue(inputElement, queryContext, null);
+    // Make the new element the root element of the document. This is needed to get attribute namespaces.
+    domDocument.appendChild(outputElement);
+    // Converting the root element to BaseX does not work:
+    //Value bxResult = JavaCall.toValue(domDocument.getDocumentElement(), queryContext, null);
+    // Converting the document to BaseX and taking the root element works:
+    ANode bxResult = (ANode)JavaCall.toValue(domDocument, queryContext, null);
+    // Return the root element.
+    return bxResult.childIter().next();
+  }
+
+
+  // == Simple document constructor that returns a Java document node.
+
+
+  @Requires(Permission.NONE)
+  @Deterministic
+  @ContextDependent
+  public Document document() throws QueryException, ParserConfigurationException
+  {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setNamespaceAware(true);
+    DocumentBuilder builder = factory.newDocumentBuilder();
+    Document domDocument = builder.newDocument();
+    Element outputElement = domDocument.createElement("test");
+    outputElement.setAttributeNS("http://test", "test:attr", "test");
+    // The namespace declaration must be set as a (pseudo-)attribute.
+    outputElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:test", "http://test");
+    // Make the new element the root element of the document. This is needed to get attribute namespaces
+    domDocument.appendChild(outputElement);
+    return domDocument;
+  }
+
 
   // == Simple identity function.
 
@@ -44,7 +99,7 @@ public class TestModule extends QueryModule
     // ((FElem)bxResult).attributeIter().next().qname() == Q{http://test}attr
     return bxResult;
     // It is simpler to just return an Element, which gives the same result, but is more difficult to inspect when debugging.
-    //return outputElement;
+    //return inputElement;
   }
 
 
