@@ -32,20 +32,7 @@ public class TestModule extends QueryModule
   @ContextDependent
   public Value element() throws QueryException, ParserConfigurationException
   {
-    // Make a DOM document.
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    factory.setNamespaceAware(true);
-    DocumentBuilder builder = factory.newDocumentBuilder();
-    Document domDocument = builder.newDocument();
-    // Construct an element <test xmlns:test="http://test" test:attr="test"/>.
-    Element outputElement = domDocument.createElement("test");
-    outputElement.setAttributeNS("http://test", "test:attr", "test");
-    // The namespace declaration must be set as a (pseudo-)attribute.
-    outputElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:test", "http://test");
-    // Returning `outputElement`, or converting it to BaseX first, loses the attribute namespace URI.
-    //return JavaCall.toValue(inputElement, queryContext, null);
-    // Make the new element the root element of the document. This is needed to get attribute namespaces.
-    domDocument.appendChild(outputElement);
+    Document domDocument = document();
     // Converting the root element to BaseX does not work:
     //Value bxResult = JavaCall.toValue(domDocument.getDocumentElement(), queryContext, null);
     // Converting the document to BaseX and taking the root element works:
@@ -67,9 +54,11 @@ public class TestModule extends QueryModule
     factory.setNamespaceAware(true);
     DocumentBuilder builder = factory.newDocumentBuilder();
     Document domDocument = builder.newDocument();
-    Element outputElement = domDocument.createElement("test");
+    // Construct an element <el:test xmlns:el="http://el" xmlns:test="http://test" test:attr="test"/>.
+    Element outputElement = domDocument.createElementNS("http://el", "el:test");
     outputElement.setAttributeNS("http://test", "test:attr", "test");
-    // The namespace declaration must be set as a (pseudo-)attribute.
+    // The namespace declarations must be set as a (pseudo-)attribute.
+    outputElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:el", "http://el");
     outputElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:test", "http://test");
     // Make the new element the root element of the document. This is needed to get attribute namespaces
     domDocument.appendChild(outputElement);
