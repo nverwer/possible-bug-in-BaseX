@@ -4,6 +4,14 @@ This project is meant to demonstrate a possible bug in BaseX.
 The problem is a disappearing namespace on an attribute after transforming a document.
 It may be a bug in my own Java code, rather than in BaseX.
 
+# Solution
+
+The problem was solved by
+* always using a document node when converting from Java to BaseX;
+* adding namespace declaration attributes for all namespaces on elements as well as attributes.
+
+Example code is in `TestModule.java` and `test-minimal.xq`.
+
 # Description of the problem
 
 The problem first occurred in a custom XQuery function that I made in Java,
@@ -25,7 +33,9 @@ The example module `TestModule` defines 2 functions:
 The XQuery `test.xq` demonstrates the problem.
 It uses a simple input document
 
-```<p xmlns:test="http://test" test:attr="p">TEST</p>```
+```
+<p xmlns:test="http://test" test:attr="p">TEST</p>
+```
 
 The output from `test:function($input)` still has the namespace URI on `@test:attr`,
 but the output from `test:domfunction($input)` does not.
@@ -54,22 +64,6 @@ The output from `test:domfunction($input)` should still have the namespace URI o
 [["test:attr","http://test",test:attr,"test","http://test"]]
 [["test:attr","",test:attr,"test",""]]
 ```
-
-# How to solve?
-
-I believe that I used the right way to set the attributes when making a copy of the DOM.
-But it is possible that something is wrong there, which prevents BaseX from picking up the namespace of the attribute.
-In that case, I hope someone can tell me what I should do differently.
-
-I tried to follow what happens in `Value bxResult = JavaCall.toValue(outputElement, queryContext, null);`
-It calls `FElem.build()`, where the `test` namespace is added to the `namespaces` variable, and the `test:attr` attribute has the right QName.
-The result in `bxResult` also looks right, see lines 76 and 77 in `TestModule.java`.
-
-But when I get the namespace URI of `@test:attr` in XQuery, it is absent.
-
-One might think that this is a problem with the XQuery functions that deal with namespaces, but I don't think that is the case.
-In the program where this issue originally arose, I apply several more XQuery functions to the result of my transformation function,
-and the namespace has always disappeared.
 
 # Configuration
 

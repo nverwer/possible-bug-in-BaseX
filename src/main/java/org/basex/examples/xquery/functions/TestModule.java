@@ -54,14 +54,31 @@ public class TestModule extends QueryModule
     factory.setNamespaceAware(true);
     DocumentBuilder builder = factory.newDocumentBuilder();
     Document domDocument = builder.newDocument();
-    // Construct an element <el:test xmlns:el="http://el" xmlns:test="http://test" test:attr="test"/>.
-    Element outputElement = domDocument.createElementNS("http://el", "el:test");
-    outputElement.setAttributeNS("http://test", "test:attr", "test");
+    // Construct an element
+    //  <n1:test1 n2:attr="test" xmlns:n1="http://n1" xmlns:n2="http://n2">
+    //    <n2:test2 n1:attr="test"/>
+    //    <test3 xmlns="http://n3"/>
+    //  </n1:test>
+    // Parent element.
+    Element test1Element = domDocument.createElementNS("http://n1", "n1:test1");
+    test1Element.setAttributeNS("http://n2", "n2:attr2", "test");
     // The namespace declarations must be set as a (pseudo-)attribute.
-    outputElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:el", "http://el");
-    outputElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:test", "http://test");
-    // Make the new element the root element of the document. This is needed to get attribute namespaces
-    domDocument.appendChild(outputElement);
+    test1Element.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:n1", "http://n1");
+    test1Element.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:n2", "http://n2");
+    // Child element.
+    Element test2Element = domDocument.createElementNS("http://n2", "n2:test2");
+    test2Element.setAttributeNS("http://n1", "n1:attr", "test");
+    // The namespace declarations must be set as a (pseudo-)attribute.
+    test2Element.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:n1", "http://n1");
+    test2Element.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:n2", "http://n2");
+    // Child element.
+    Element test3Element = domDocument.createElementNS("http://n3", "test3");
+    test3Element.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "http://n3");
+    // Append child elements.
+    test1Element.appendChild(test2Element);
+    test1Element.appendChild(test3Element);
+    // Make the parent element the root element of the document. This is needed to get attribute namespaces right.
+    domDocument.appendChild(test1Element);
     return domDocument;
   }
 

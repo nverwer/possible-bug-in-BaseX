@@ -1,8 +1,9 @@
 import module namespace test = "org.basex.examples.xquery.functions.TestModule";
 let $e := test:element()
-let $d := test:document()/*
-for $x in ( $e, $d )
+for $x in ( $e, $e/* )
 return
-( [ $x , $x/@*/name() , $x/@*/namespace-uri() , $x/@*/node-name() , $x/@*/node-name()!namespace-uri-from-QName(.) ]
+( $x
+, [ $x/@*/name() , $x/@*/namespace-uri() , $x/@*/node-name() , $x/@*/node-name()!namespace-uri-from-QName(.) ]
 , [ $x/name(), $x/namespace-uri() ]
+, '---'
 )
